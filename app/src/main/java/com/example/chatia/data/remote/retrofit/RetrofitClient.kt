@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
 
     private const val BASE_URL = "https://api.openai.com/"
-    private const val API_KEY = "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" // Substitua pela sua chave da API da OpenAI
 
+    private val API_KEY = com.example.chatia.BuildConfig.OPENAI_API_KEY
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
