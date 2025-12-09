@@ -45,7 +45,7 @@ import com.example.chatia.data.model.Message
 import com.example.chatia.data.remote.retrofit.RetrofitClient
 import com.example.chatia.data.repository.ChatRepository
 import com.example.chatia.ui.theme.ChatIATheme
-
+import dev.jeziellago.compose.markdowntext.MarkdownText
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(viewModel: ChatViewModel = viewModel(factory = ChatViewModelFactory(ChatRepository(RetrofitClient.openAIApi)))) {
