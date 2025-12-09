@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
@@ -23,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -35,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -46,7 +45,7 @@ import com.example.chatia.data.model.Message
 import com.example.chatia.data.remote.retrofit.RetrofitClient
 import com.example.chatia.data.repository.ChatRepository
 import com.example.chatia.ui.theme.ChatIATheme
-import androidx.compose.foundation.shape.RoundedCornerShape
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(viewModel: ChatViewModel = viewModel(factory = ChatViewModelFactory(ChatRepository(RetrofitClient.openAIApi)))) {
@@ -149,7 +148,6 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel(factory = ChatViewModelFacto
 fun MessageBubble(message: Message) {
     val bubbleColor = if (message.isFromUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer
     val textColor = if (message.isFromUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
-    val alignment = if (message.isFromUser) Alignment.End else Alignment.Start
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -159,12 +157,12 @@ fun MessageBubble(message: Message) {
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier
                 .padding(horizontal = 4.dp, vertical = 4.dp)
-                .weight(1f, fill = true) // Allow bubble to wrap content
+                .weight(1f, fill = false) // Alterado para false para não esticar demais mensagens curtas
                 .background(bubbleColor)
-                .semantics(true) { contentDescription = "Mensagem de ${if (message.isFromUser) "você" else "IA"}: ${message.text}" }
         ) {
-            Text(
-                text = message.text,
+            // Substituimos Text por MarkdownText
+            MarkdownText(
+                markdown = message.text,
                 color = textColor,
                 modifier = Modifier.padding(10.dp)
             )
