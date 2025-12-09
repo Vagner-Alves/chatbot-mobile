@@ -48,7 +48,7 @@ import com.example.chatia.ui.theme.ChatIATheme
 import dev.jeziellago.compose.markdowntext.MarkdownText
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(viewModel: ChatViewModel = viewModel(factory = ChatViewModelFactory(ChatRepository(RetrofitClient.openAIApi)))) {
+fun ChatScreen(viewModel: ChatViewModel){
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var inputText by remember { mutableStateOf("") }
@@ -174,6 +174,10 @@ fun MessageBubble(message: Message) {
 @Composable
 fun ChatScreenPreview() {
     ChatIATheme {
-        ChatScreen(viewModel = ChatViewModel(ChatRepository(RetrofitClient.openAIApi)))
+        // Isso aqui daria erro, pois o Repository agora pede o DAO
+        ChatScreen(viewModel = ChatViewModel(ChatRepository(
+            RetrofitClient.openAIApi,
+            messageDao = TODO()
+        )))
     }
 }
