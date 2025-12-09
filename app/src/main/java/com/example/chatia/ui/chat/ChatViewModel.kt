@@ -9,55 +9,59 @@ import com.example.chatia.data.remote.retrofit.RetrofitClient
 import com.example.chatia.data.repository.ChatRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
 
-    private val _messages = MutableStateFlow<List<Message>>(emptyList())
-    val messages: StateFlow<List<Message>> = _messages.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // 2. Declaração de Eventos de Erro (Toast, etc)
     private val _oneShotEvents = Channel<ChatOneShotEvent>()
     val oneShotEvents = _oneShotEvents.receiveAsFlow()
+    val messages: StateFlow<List<Message>> = repository.allMessages
+        .map { entities ->
+            entities.map { Message(it.text, it.isFromUser) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ... (isLoading e oneShotEvents permanecem iguais)
 
     fun sendMessage(text: String) {
         if (text.isBlank()) return
 
-        val userMessage = Message(text, true)
-        _messages.value = _messages.value + userMessage
-
         _isLoading.value = true
 
         viewModelScope.launch {
+            // 1. Salva a mensagem do usuário no banco
+            repository.saveMessage(text, true)
+
+            // 2. Monta o request para a API
             val chatRequest = ChatRequest(
-                model = "gpt-3.5-turbo", // Ou o modelo que você preferir
-                messages = _messages.value.map { message ->
-                    ResponseMessage(
-                        role = if (message.isFromUser) "user" else "assistant",
-                        content = message.text
-                    )
+                model = "gpt-3.5-turbo",
+                messages = messages.value.map { // Pega o histórico atual
+                    ResponseMessage(if (it.isFromUser) "user" else "assistant", it.text)
                 }
             )
 
+            // 3. Chama a API
             val result = repository.getChatCompletion(chatRequest)
             _isLoading.value = false
 
             result.onSuccess {
-                val assistantMessageContent = it.choices.firstOrNull()?.message?.content
-                if (assistantMessageContent != null) {
-                    val assistantMessage = Message(assistantMessageContent, false)
-                    _messages.value = _messages.value + assistantMessage
-                } else {
-                    _oneShotEvents.send(ChatOneShotEvent.ShowError("Resposta vazia da IA"))
+                val content = it.choices.firstOrNull()?.message?.content
+                if (content != null) {
+                    // 4. Salva a resposta da IA no banco (a UI atualiza sozinha via Flow)
+                    repository.saveMessage(content, false)
                 }
-            }.onFailure {
-                _oneShotEvents.send(ChatOneShotEvent.ShowError("Erro: ${it.localizedMessage}"))
             }
+            // ... (tratamento de erro igual)
         }
     }
 }
