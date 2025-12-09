@@ -1,0 +1,68 @@
+# Arquivos e pastas gerados durante o build
+/build
+/.gradle
+.gradle/
+local.properties
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+*.jar
+*.keystore
+*.jks
+*.iml
+*.iws
+*.ipr
+
+# Arquivos e pastas específicos do IDE (Android Studio / IntelliJ IDEA)
+.idea/
+# Exceção: Se você tiver arquivos de configuração de VCS específicos da equipe (.idea/vcs.xml, .idea/codeStyles),
+# pode ser que queira versioná-los, mas para a maioria dos casos, ignorar .idea/ é o mais seguro.
+# Se você decidir incluir alguns arquivos, adicione exceções aqui, por exemplo:
+# !.idea/vcs.xml
+# !.idea/codeStyles/
+
+# Pastas de cache e temporárias
+captures/
+.externalNativeBuild/
+.cxx/
+/output
+/out
+
+# Relatórios de lint
+lint-results.html
+lint-results.xml
+
+# Relatórios de teste
+test-results/
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários do OS (macOS e Windows)
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários de editor
+*~
+*.swp
+.netrwhist
+
+# Arquivos de configurações do proguard (se você tiver configs muito específicas que não devem ser versionadas)
+# -keep.txt
+# -dontskip.txt
+
+# Arquivos de ambiente
+# .env
+# .env.*
+
+# Chaves de depuração e segurança (muito importante para não versionar)
+# Se você tiver um arquivo debug.keystore ou similar na raiz do projeto, ignore-o.
+debug.keystore
+
+# Qualquer pasta build dentro de módulos
+*/build/
+
+# Pastas de saída do Android Asset Studio e outros geradores
+generated/
