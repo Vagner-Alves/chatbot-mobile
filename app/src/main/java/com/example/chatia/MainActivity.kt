@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
@@ -23,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,18 +33,43 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.example.chatia.data.local.AppDatabase
+import com.example.chatia.data.remote.retrofit.RetrofitClient
+import com.example.chatia.data.repository.ChatRepository
 import com.example.chatia.ui.chat.ChatScreen
+import com.example.chatia.ui.chat.ChatViewModel
+import com.example.chatia.ui.chat.ChatViewModelFactory
+import com.example.chatia.ui.chat.MessageBubble
 import com.example.chatia.ui.theme.ChatIATheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // 1. Inicializa o Banco de Dados (Room)
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "chat-database"
+        ).build()
+
+        // 2. Cria o repositório passando a API (Retrofit) e o DAO (Banco local)
+        val repository = ChatRepository(
+            RetrofitClient.openAIApi,
+            db.messageDao()
+        )
+
+        // 3. Cria a Factory para o ViewModel
+        val viewModelFactory = ChatViewModelFactory(repository)
+
         setContent {
             ChatIATheme {
                 val navController = rememberNavController()
@@ -55,9 +83,24 @@ class MainActivity : ComponentActivity() {
                         startDestination = Screen.Chat.route,
                         modifier = Modifier.padding(paddingValues)
                     ) {
-                        composable(Screen.Chat.route) { ChatScreen() }
-                        composable(Screen.History.route) { HistoryScreen() }
-                        composable(Screen.About.route) { AboutScreen() }
+                        // Rota do CHAT
+                        composable(Screen.Chat.route) {
+                            // Obtém o ViewModel usando a Factory criada acima
+                            val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
+                            ChatScreen(viewModel = viewModel)
+                        }
+
+                        // Rota do HISTÓRICO
+                        composable(Screen.History.route) {
+                            // Reutiliza o mesmo ViewModel para exibir o histórico
+                            val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
+                            HistoryScreen(viewModel = viewModel)
+                        }
+
+                        // Rota SOBRE
+                        composable(Screen.About.route) {
+                            AboutScreen()
+                        }
                     }
                 }
             }
@@ -97,7 +140,10 @@ fun BottomNavigationBar(navController: NavController) {
 }
 
 @Composable
-fun HistoryScreen() {
+fun HistoryScreen(viewModel: ChatViewModel) { // <-- AQUI estava faltando o parâmetro
+    // Observa a lista de mensagens do banco de dados (conectado no passo 4)
+    val messages by viewModel.messages.collectAsState()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -107,8 +153,29 @@ fun HistoryScreen() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(text = "Histórico de Conversas", style = MaterialTheme.typography.headlineMedium)
-            // TODO: Implement conversation history display
+            Text(
+                text = "Histórico de Conversas",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (messages.isEmpty()) {
+                Text(
+                    text = "Nenhuma conversa salva ainda.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            } else {
+                // Exibe a lista usando o componente LazyColumn
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                ) {
+                    items(messages) { message ->
+                        // Reutiliza o componente visual que já criamos para o Chat
+                        MessageBubble(message = message)
+                    }
+                }
+            }
         }
     }
 }
