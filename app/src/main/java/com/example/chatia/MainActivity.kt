@@ -140,7 +140,7 @@ fun BottomNavigationBar(navController: NavController) {
 }
 
 @Composable
-fun HistoryScreen(viewModel: ChatViewModel) { // <-- AQUI estava faltando o parâmetro
+fun HistoryScreen(viewModel: ChatViewModel) {
     // Observa a lista de mensagens do banco de dados (conectado no passo 4)
     val messages by viewModel.messages.collectAsState()
 
