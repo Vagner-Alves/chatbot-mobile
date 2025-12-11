@@ -54,27 +54,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Inicializa o Banco de Dados (Room)
+        // 1. Setup de Dependências (Banco e Repositório)
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "chat-database"
         ).build()
 
-        // 2. Cria o repositório passando a API (Retrofit) e o DAO (Banco local)
-        val repository = ChatRepository(
-            RetrofitClient.openAIApi,
-            db.messageDao()
-        )
-
-        // 3. Cria a Factory para o ViewModel
+        val repository = ChatRepository(RetrofitClient.openAIApi, db.messageDao())
         val viewModelFactory = ChatViewModelFactory(repository)
 
         setContent {
             ChatIATheme {
                 val navController = rememberNavController()
+
                 Scaffold(
                     bottomBar = {
+                        // Componente desacoplado sendo chamado aqui
                         BottomNavigationBar(navController = navController)
                     }
                 ) { paddingValues ->
@@ -83,21 +79,16 @@ class MainActivity : ComponentActivity() {
                         startDestination = Screen.Chat.route,
                         modifier = Modifier.padding(paddingValues)
                     ) {
-                        // Rota do CHAT
                         composable(Screen.Chat.route) {
-                            // Obtém o ViewModel usando a Factory criada acima
                             val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
                             ChatScreen(viewModel = viewModel)
                         }
 
-                        // Rota do HISTÓRICO
                         composable(Screen.History.route) {
-                            // Reutiliza o mesmo ViewModel para exibir o histórico
                             val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
                             HistoryScreen(viewModel = viewModel)
                         }
 
-                        // Rota SOBRE
                         composable(Screen.About.route) {
                             AboutScreen()
                         }
