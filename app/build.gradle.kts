@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    // REMOVEMOS: id("kotlin-kapt")
+    alias(libs.plugins.ksp) // ADICIONAMOS: KSP
 }
 
 android {
@@ -45,7 +46,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -57,25 +57,23 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation("com.github.jeziellago:compose-markdown:0.5.0")
 
-    // ViewModel
+    // ViewModel & Navegação
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
-
-    // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.compose.foundation.layout)
 
-    // Room banco de dados
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.material3)
-    kapt(libs.androidx.room.compiler)
+    // Room (Banco de Dados)
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+
+    // MUDANÇA CRUCIAL AQUI: Usamos "ksp" em vez de "kapt"
+    ksp("androidx.room:room-compiler:$room_version")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
-import com.example.chatia.data.local.AppDatabase
+import com.example.chatia.data.local.AppDatabase // Corrected import
 import com.example.chatia.data.remote.retrofit.RetrofitClient
 import com.example.chatia.data.repository.ChatRepository
 import com.example.chatia.ui.about.AboutScreen
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
                         composable(Screen.History.route) {
                             val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
-                            HistoryScreen(viewModel = viewModel)
+                            HistoryScreen(viewModel = viewModel, navController = navController)
                         }
 
                         composable(Screen.About.route) {
