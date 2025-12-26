@@ -34,7 +34,8 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java,
             "chat-database"
-        ).build()
+        )   .fallbackToDestructiveMigration()
+            .build()
 
         val repository = ChatRepository(RetrofitClient.openAIApi, db.messageDao())
         val viewModelFactory = ChatViewModelFactory(repository)
@@ -42,7 +43,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ChatIATheme {
                 val navController = rememberNavController()
-
+                val sharedViewModel: ChatViewModel = viewModel(factory = viewModelFactory)
                 Scaffold(
                     bottomBar = {
                         // Componente desacoplado sendo chamado aqui
@@ -55,13 +56,14 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(paddingValues)
                     ) {
                         composable(Screen.Chat.route) {
-                            val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
-                            ChatScreen(viewModel = viewModel)
+                            ChatScreen(viewModel = sharedViewModel)
                         }
 
                         composable(Screen.History.route) {
-                            val viewModel: ChatViewModel = viewModel(factory = viewModelFactory)
-                            HistoryScreen(viewModel = viewModel, navController = navController)
+                            HistoryScreen(
+                                viewModel = sharedViewModel,
+                                navController = navController
+                            )
                         }
 
                         composable(Screen.About.route) {
